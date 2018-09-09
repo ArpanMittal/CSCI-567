@@ -22,6 +22,24 @@ def compute_distances(Xtrain, X):
 	  is the Euclidean distance between the ith test point and the jth training
 	  point.
 	"""
+	dists = np.zeros(shape=(np.size(X, 0), np.size(Xtrain, 0)))
+	# print(dists.shape)
+	i = 0
+	for test in X:
+		j = 0
+		for train in Xtrain:
+			val = 0
+			# dists[i, j] = np.linalg.norm(train - test)
+			# for dim in range(num_train_d):
+			#     val += np.square(train[dim] - test[dim])
+			# val = np.sqrt(val)
+			# dists[i, j] = scipy.spatial.distance.euclidean(test, train)
+			# np.sum((test - train) ** 2)
+			dists[i, j] = np.linalg.norm(test - train)
+			# dists[i,j] = val
+			j = j + 1
+		# print ("i =",i,"j =",j)
+		i = i + 1
 	#####################################################
 	#				 YOUR CODE HERE					                    #
 	#####################################################		 
@@ -42,10 +60,28 @@ def predict_labels(k, ytrain, dists):
 	- ypred: A numpy array of shape (num_test,) containing predicted labels for the
 	  test data, where y[i] is the predicted label for the test point X[i]. 
 	"""
+	dimension = np.size(dists, 0)
+	# print(dimension)
+	dists_sort_index = np.argsort(dists)
+	ypred = np.empty([dimension, ])
+	i = 0
+	ypred_test = np.zeros([dimension, k])
+	for ind_test_index in dists_sort_index:
+		for j in range(k):
+			ypred_test[i][j] = ytrain[ind_test_index[j]]
+		i = i + 1
+	i = 0
+	ypred_test = ypred_test.astype(int)
+	# print(ypred_test)
+	for row in ypred_test:
+		ypred[i] = np.argmax(np.bincount(row))
+		i = i + 1
+
+	return ypred.astype(int)
 	#####################################################
 	#				 YOUR CODE HERE					                    #
 	#####################################################
-	return ypred
+	# return ypred
 
 ###### Q5.3 ######
 def compute_accuracy(y, ypred):
@@ -59,6 +95,18 @@ def compute_accuracy(y, ypred):
 	Returns:
 	- acc: The accuracy of prediction (scalar).
 	"""
+	correct_predict = 0
+	size = np.size(y, 0)
+
+	for i in range(size):
+		if y[i] == ypred[i]:
+			correct_predict = correct_predict + 1
+	#
+	acc = correct_predict / size
+	#####################################################
+	#				 YOUR CODE HERE					                    #
+	#####################################################
+	#return acc
 	#####################################################
 	#				 YOUR CODE HERE					                    #
 	#####################################################
@@ -81,7 +129,13 @@ def find_best_k(K, ytrain, dists, yval):
 	- best_k: The k with the highest validation accuracy.
 	- validation_accuracy: A list of accuracies of different ks in K.
 	"""
-	
+	validation_accuracy = np.zeros([len(K), ])
+	for i in range(len(K)):
+		ypred = predict_labels(K[i], ytrain, dists)
+		acc = compute_accuracy(yval, ypred)
+		validation_accuracy[i] = acc
+	# v_test = validation_accuracy
+	best_k = K[np.argmax(validation_accuracy)]
 	#####################################################
 	#				 YOUR CODE HERE					                    #
 	#####################################################

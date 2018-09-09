@@ -19,6 +19,7 @@ def linear_regression_noreg(X, y):
   Returns:
   - w: a numpy array of shape (D, )
   """
+  w = np.matmul(np.matmul(np.linalg.inv(np.matmul(X.transpose(), X)), X.transpose()), y)
   #####################################################
   #				 YOUR CODE HERE					                    #
   #####################################################		 
@@ -35,6 +36,7 @@ def regularized_linear_regression(X, y, lambd):
     Returns:
     - w: a numpy array of shape (D, )
     """
+  w = np.matmul(np.matmul(np.linalg.inv(np.add(np.matmul(X.transpose(), X), lambd * np.identity(np.size(X, 1)))), X.transpose()), y)
   #####################################################
   #				 YOUR CODE HERE					                    #
   #####################################################		 
@@ -53,6 +55,13 @@ def tune_lambda(Xtrain, ytrain, Xval, yval, lambds):
     Returns:
     - bestlambda: the best lambda you find in lambds
     """
+  sum = []
+  for i in range(len(lambds)):
+    w = regularized_linear_regression(Xtrain, ytrain, lambds[i])
+    sum.append(np.sum(np.square(np.subtract(np.matmul(Xval, w), yval))))
+
+  # print(sum)
+  bestlambda = lambds[sum.index(min(sum))]
   #####################################################
   #				 YOUR CODE HERE					                    #
   #####################################################		 
@@ -69,6 +78,7 @@ def test_error(w, X, y):
     Returns:
     - err: the mean square error
     """
+  err = np.sum(np.square(np.subtract(np.matmul(X, w), y))) / np.size(X, 0)
   return err
 
 
