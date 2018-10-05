@@ -3,6 +3,7 @@ from __future__ import division, print_function
 import numpy as np
 
 
+
 #######################################################################
 # Replace TODO with your code
 #######################################################################
@@ -40,11 +41,23 @@ def binary_train(X, y, w0=None, b0=None, step_size=0.5, max_iterations=1000):
         b = b0
 
 
-    """
-    TODO: add your code here
-    """
+
+    for i in range(max_iterations):
+        e = sigmoid(w.dot(X.transpose()) + b) - y
+        #e2 = sigmoid(y.dot(w.dot(X.transpose())) + b)
+
+        w_gradient = np.dot(e,X)/N
+        b_gradient = np.sum(e)/N
+        #print(w_gradient)
+        w -= step_size * w_gradient
+        b -= step_size * b_gradient
+
+
+   # for i in range(max_iterations):
+   #      e = sigmoid(w.dot(X.T) + b) - y
 
     assert w.shape == (D,)
+
     return w, b
 
 
@@ -58,8 +71,14 @@ def binary_predict(X, w, b):
     - preds: N dimensional vector of binary predictions: {0, 1}
     """
     N, D = X.shape
-    preds = np.zeros(N) 
+    preds = np.zeros(N)
 
+    preds = sigmoid(w.dot(X.transpose()) + b)
+    for i in range(N):
+        if(preds[i] >= 0.5):
+            preds[i] = 1
+        else:
+            preds[i] = 0
 
     """
     TODO: add your code here
@@ -108,7 +127,14 @@ def multinomial_train(X, y, C,
     if b0 is not None:
         b = b0
 
-
+    y = np.eye(C)[y]
+    for i in range(max_iterations):
+        error = softmax(np.transpose(np.dot(w,np.transpose(X))) + b) - y
+        gradient_w = np.dot(np.transpose(error),X) / N
+        gradient_b = np.sum(error, 0) / N
+        w -= step_size * gradient_w
+        b -= step_size * gradient_b
+    #print(X)
     """
     TODO: add your code here
     """
@@ -117,6 +143,12 @@ def multinomial_train(X, y, C,
     assert b.shape == (C,)
     return w, b
 
+def softmax(x):
+    e = np.exp(x - np.max(x))
+    # if e.ndim == 1:
+    #     return e / np.sum(e,0)
+    # else:
+    return np.transpose(np.transpose(e) / np.array([np.sum(e, 1)]))
 
 def multinomial_predict(X, w, b):
     """
@@ -135,7 +167,10 @@ def multinomial_predict(X, w, b):
     """
     N, D = X.shape
     C = w.shape[0]
-    preds = np.zeros(N) 
+    preds = np.zeros(N)
+
+    preds = softmax((np.dot(w,(np.transpose(X))).T + b))
+    preds = np.argmax(preds, 1)
 
     """
     TODO: add your code here
@@ -176,6 +211,18 @@ def OVR_train(X, y, C, w0=None, b0=None, step_size=0.5, max_iterations=1000):
     if b0 is not None:
         b = b0
 
+    temp1 = []
+    temp2 = []
+    for i in range(C):
+        train = [1 if k == i else 0 for k in y]
+        out, b1 = binary_train(X, train)
+        temp1.append(out)
+        temp2.append(b1)
+    w = np.array(temp1)
+    b = np.array(temp2)
+    # print (w.shape)
+    # print (b.shape)
+
     """
     TODO: add your code here
     """
@@ -202,7 +249,12 @@ def OVR_predict(X, w, b):
     """
     N, D = X.shape
     C = w.shape[0]
-    preds = np.zeros(N) 
+    preds = np.zeros(N)
+    a = []
+    for i in range(C):
+        a.append(binary_predict(X, w[i], b[i]))
+    k = np.argmax(np.array(a), 0)
+    preds = np.array(k)
     
     """
     TODO: add your code here

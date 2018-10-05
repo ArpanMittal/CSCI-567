@@ -160,7 +160,9 @@ def main(main_params):
             # Please make sure to connect them with m1 and m2, the input and output of the #
             # previous and the next modules, respectively                                  #
             ################################################################################
-
+            c2 = model['C2'].forward(m1)
+            nonlinear2 = model['nonlinear2'].forward(c2)
+            m2 = model['M2'].forward(nonlinear2)
             # TODO (2)
 
             ################################################################################
@@ -171,6 +173,8 @@ def main(main_params):
             d1 = model['drop1'].forward(f1, is_train = True)
             a1 = model['L1'].forward(d1)
             loss = model['loss'].forward(a1, y)
+
+
 
             ### backward ###
             grad_a1 = model['loss'].backward(a1, y)
@@ -190,6 +194,10 @@ def main(main_params):
             ################################################################################
 
             # TODO (3)
+
+            g_m2 = model['M2'].backward(nonlinear2, grad_m2)
+            grad_c2 = model['nonlinear2'].backward(c2, g_m2)
+            grad_m1 = model['C2'].backward(m1, grad_c2)
 
             ################################################################################
             #                            End of TODO (3)                                   #
@@ -235,6 +243,9 @@ def main(main_params):
             ################################################################################
 
             # TODO (4)
+            c2 = model['C2'].forward(m1)
+            h2 = model['nonlinear2'].forward(c2)
+            m2 = model['M2'].forward(h2)
 
             ################################################################################
             #                            End of TODO (4)                                   #
@@ -276,6 +287,9 @@ def main(main_params):
             ################################################################################
 
             # TODO (5)
+            c2 = model['C2'].forward(m1)
+            h2 = model['nonlinear2'].forward(c2)
+            m2 = model['M2'].forward(h2)
 
             ################################################################################
             #                            End of TODO (5)                                   #
