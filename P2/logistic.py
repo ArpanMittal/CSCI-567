@@ -130,8 +130,8 @@ def multinomial_train(X, y, C,
     y = np.eye(C)[y]
     for i in range(max_iterations):
         error = softmax(np.transpose(np.dot(w,np.transpose(X))) + b) - y
-        gradient_w = np.dot(np.transpose(error),X) / N
-        gradient_b = np.sum(error, 0) / N
+        gradient_w = np.dot(np.transpose(error),X) / y.shape[0]
+        gradient_b = np.sum(error, 0) / y.shape[0]
         w -= step_size * gradient_w
         b -= step_size * gradient_b
     #print(X)
@@ -211,17 +211,27 @@ def OVR_train(X, y, C, w0=None, b0=None, step_size=0.5, max_iterations=1000):
     if b0 is not None:
         b = b0
 
-    temp1 = []
-    temp2 = []
+    temp1 = list()
+    temp2 = list()
+    
     for i in range(C):
-        train = [1 if k == i else 0 for k in y]
-        out, b1 = binary_train(X, train)
+        train2 = list()
+        #train = [1 if k == i else 0 for k in y]
+        #z = 0;
+        for k in y:
+            if(k == i):
+                train2.append(1)
+            else:
+                train2.append(0)
+            #z = z+1
+        #print (len(train))
+        #print(len(train2))
+        out, b1 = binary_train(X,train2)
         temp1.append(out)
         temp2.append(b1)
     w = np.array(temp1)
     b = np.array(temp2)
-    # print (w.shape)
-    # print (b.shape)
+    
 
     """
     TODO: add your code here
@@ -250,10 +260,11 @@ def OVR_predict(X, w, b):
     N, D = X.shape
     C = w.shape[0]
     preds = np.zeros(N)
-    a = []
+    a = list()
     for i in range(C):
         a.append(binary_predict(X, w[i], b[i]))
     k = np.argmax(np.array(a), 0)
+   
     preds = np.array(k)
     
     """
