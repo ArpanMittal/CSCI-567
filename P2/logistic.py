@@ -75,7 +75,7 @@ def binary_predict(X, w, b):
 
     preds = sigmoid(w.dot(X.transpose()) + b)
     for i in range(N):
-        if(preds[i] >= 0.5):
+        if(preds[i] > 0.5):
             preds[i] = 1
         else:
             preds[i] = 0
@@ -261,12 +261,13 @@ def OVR_predict(X, w, b):
     C = w.shape[0]
     preds = np.zeros(N)
     a = list()
-    for i in range(C):
-        a.append(binary_predict(X, w[i], b[i]))
-    k = np.argmax(np.array(a), 0)
+    # for i in range(C):
+    #     a.append(binary_predict(X, w[i], b[i]))
+    # k = np.argmax(np.array(a), 0)
    
-    preds = np.array(k)
-    
+    # preds = np.array(k)
+    preds = sigmoid((w.dot(X.T)).T + b)
+    preds = np.argmax(preds,1)
     """
     TODO: add your code here
     """
