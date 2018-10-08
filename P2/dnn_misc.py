@@ -97,8 +97,10 @@ class linear_layer:
         # backward_output = ? (N-by-input_D numpy array, the gradient of the mini-batch loss w.r.t. X)                           #
         # only return backward_output, but need to compute self.gradient['W'] and self.gradient['b']                             #
         ##########################################################################################################################
+        N,Di = X.shape
+        identity = np.ones((1,N))
         self.gradient['W'] = np.dot(np.transpose(X),grad)
-        self.gradient['b'] = np.sum(grad)
+        self.gradient['b'] = np.matmul(identity, grad)
         backward_output = np.dot(grad,np.transpose(self.params['W']))
         return backward_output
 
