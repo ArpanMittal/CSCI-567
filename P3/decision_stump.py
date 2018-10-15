@@ -22,5 +22,14 @@ class DecisionStump(Classifier):
 		'''
 		##################################################
 		# TODO: implement "predict"
+
+		result = list()
+		for temp in features:
+			if(temp[self.d] > self.b ):
+				result.append(self.s)
+			else:
+				result.append(-1*self.s)
+
+		return result
 		##################################################
 		

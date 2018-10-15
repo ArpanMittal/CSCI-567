@@ -16,7 +16,14 @@ def objective_function(X, y, w, lamb):
     """
     # you need to fill in your solution here
 
-
+    obj_value = (lamb/2)*(np.squeeze(w.T.dot(w))) + np.mean(np.maximum(0, 1-y*(X.dot(w))))
+    # print(obj_value2)
+    # #test = np.mean(np.maximum(0, 1-y*(X.dot(w))))
+    # wnorm = np.sum(w ** 2)
+    # obj_value = 1 - y * np.squeeze(X.dot(w), 1)
+    # obj_value[obj_value < 0] = 0
+    # obj_value = np.mean(obj_value) + (lamb / 2 * wnorm)
+    # print(obj_value)
     return obj_value
 
 
@@ -46,8 +53,17 @@ def pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations):
     for iter in range(1, max_iterations + 1):
         A_t = np.floor(np.random.rand(k) * N).astype(int)  # index of the current mini-batch
 
-        # you need to fill in your solution here
+        x_set = Xtrain[A_t]
+        y_set = ytrain[A_t]
 
+        A_t = np.where(y_set*np.ravel(x_set.dot(w)) < 1)
+        x_set = Xtrain[A_t]
+        y_set = ytrain[A_t]
+        neta = 1/lamb*iter
+        w = w * (1-neta*lamb) + (neta/k) * np.sum(x_set.T.dot(y_set))
+        w = min(1, (1 / (np.sqrt(lamb) * np.sqrt( np.squeeze(w.T.dot(w))))))*w
+        train_obj.append(objective_function(Xtrain, ytrain, w, lamb))
+        # you need to fill in your solution here
 
     return w, train_obj
 
@@ -63,7 +79,13 @@ def pegasos_test(Xtest, ytest, w_l):
     Returns:
     - test_acc: testing accuracy.
     """
+    Xtest = np.array(Xtest)
     # you need to fill in your solution here
+    #acc = Xtest.dot(w_l)
+    acc = np.squeeze(Xtest.dot(w_l), 1)
+    acc = [-1 if ac_1 < 0 else 1 for ac_1 in acc]
+    test_acc = np.mean(np.array(ytest) == np.array(acc))
+
 
 
     return test_acc
