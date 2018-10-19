@@ -10,20 +10,14 @@ def objective_function(X, y, w, lamb):
     - ytrain: A 1 dimensional numpy array of labels (length = number of samples )
     - w: a numpy array of D elements as a D-dimension weight vector
     - lamb: lambda used in pegasos algorithm
-
     Return:
     - obj_value: the value of objective function in SVM primal formulation
     """
     # you need to fill in your solution here
 
-    obj_value = (lamb/2)*(np.squeeze(w.T.dot(w))) + np.mean(np.maximum(0, 1-y*(X.dot(w))))
-    # print(obj_value2)
-    # #test = np.mean(np.maximum(0, 1-y*(X.dot(w))))
-    # wnorm = np.sum(w ** 2)
-    # obj_value = 1 - y * np.squeeze(X.dot(w), 1)
-    # obj_value[obj_value < 0] = 0
-    # obj_value = np.mean(obj_value) + (lamb / 2 * wnorm)
-    # print(obj_value)
+    obj_value = (lamb / 2) * (np.squeeze(w.T.dot(w))) + np.mean(np.maximum(0, 1 - np.multiply(y, np.squeeze(X.dot(w)))))
+
+
     return obj_value
 
 
@@ -37,7 +31,6 @@ def pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations):
     - lamb: lambda used in pegasos algorithm
     - k: mini-batch size
     - max_iterations: the total number of iterations to update parameters
-
     Returns:
     - learnt w
     - train_obj: a list of the objective function value at each iteration during the training process, length of 500.
@@ -53,17 +46,18 @@ def pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations):
     for iter in range(1, max_iterations + 1):
         A_t = np.floor(np.random.rand(k) * N).astype(int)  # index of the current mini-batch
 
-        x_set = Xtrain[A_t]
-        y_set = ytrain[A_t]
 
-        A_t = np.where(y_set*np.ravel(x_set.dot(w)) < 1)
+
         x_set = Xtrain[A_t]
         y_set = ytrain[A_t]
-        neta = 1/lamb*iter
-        w = w * (1-neta*lamb) + (neta/k) * np.sum(x_set.T.dot(y_set))
-        w = min(1, (1 / (np.sqrt(lamb) * np.sqrt( np.squeeze(w.T.dot(w))))))*w
+        A_t = np.where(y_set * np.ravel(x_set.dot(w)) < 1)
+        X = x_set[A_t]
+        y = y_set[A_t]
+        lr = 1 / (lamb * iter)
+        w *= (1 - lr * lamb)
+        w += lr / k * np.expand_dims(np.sum(np.expand_dims(y,1) * X, 0), 1)
+        w *= min(1, 1 / (np.sqrt(lamb) * np.sqrt(np.squeeze(w.T.dot(w)))))
         train_obj.append(objective_function(Xtrain, ytrain, w, lamb))
-        # you need to fill in your solution here
 
     return w, train_obj
 
@@ -75,18 +69,16 @@ def pegasos_test(Xtest, ytest, w_l):
     - Xtest: A list of num_test elements, where each element is a list of D-dimensional features.
     - ytest: A list of num_test labels
     - w_l: a numpy array of D elements as a D-dimension vector, which is the weight vector of SVM classifier and learned by pegasos_train()
- 
+
     Returns:
     - test_acc: testing accuracy.
     """
     Xtest = np.array(Xtest)
     # you need to fill in your solution here
-    #acc = Xtest.dot(w_l)
+    # acc = Xtest.dot(w_l)
     acc = np.squeeze(Xtest.dot(w_l), 1)
     acc = [-1 if ac_1 < 0 else 1 for ac_1 in acc]
     test_acc = np.mean(np.array(ytest) == np.array(acc))
-
-
 
     return test_acc
 
@@ -96,10 +88,10 @@ NO MODIFICATIONS below this line.
 You should only write your code in the above functions.
 """
 
-def data_loader_mnist(dataset):
 
+def data_loader_mnist(dataset):
     with open(dataset, 'r') as f:
-            data_set = json.load(f)
+        data_set = json.load(f)
     train_set, valid_set, test_set = data_set['train'], data_set['valid'], data_set['test']
 
     Xtrain = train_set[0]
@@ -129,30 +121,31 @@ def data_loader_mnist(dataset):
 
 
 def pegasos_mnist():
-
     test_acc = {}
     train_obj = {}
 
-    Xtrain, ytrain, Xvalid, yvalid, Xtest, ytest = data_loader_mnist(dataset = 'mnist_subset.json')
+    Xtrain, ytrain, Xvalid, yvalid, Xtest, ytest = data_loader_mnist(dataset='mnist_subset.json')
 
     max_iterations = 500
     k = 100
     for lamb in (0.01, 0.1, 1):
         w = np.zeros((len(Xtrain[0]), 1))
-        w_l, train_obj['k=' + str(k) + '_lambda=' + str(lamb)] = pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations)
+        w_l, train_obj['k=' + str(k) + '_lambda=' + str(lamb)] = pegasos_train(Xtrain, ytrain, w, lamb, k,
+                                                                               max_iterations)
         test_acc['k=' + str(k) + '_lambda=' + str(lamb)] = pegasos_test(Xtest, ytest, w_l)
 
     lamb = 0.1
     for k in (1, 10, 1000):
         w = np.zeros((len(Xtrain[0]), 1))
-        w_l, train_obj['k=' + str(k) + '_lambda=' + str(lamb)] = pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations)
+        w_l, train_obj['k=' + str(k) + '_lambda=' + str(lamb)] = pegasos_train(Xtrain, ytrain, w, lamb, k,
+                                                                               max_iterations)
         test_acc['k=' + str(k) + '_lambda=' + str(lamb)] = pegasos_test(Xtest, ytest, w_l)
 
     return test_acc, train_obj
 
 
 def main():
-    test_acc, train_obj = pegasos_mnist() # results on mnist
+    test_acc, train_obj = pegasos_mnist()  # results on mnist
     print('mnist test acc \n')
     for key, value in test_acc.items():
         print('%s: test acc = %.4f \n' % (key, value))

@@ -19,7 +19,7 @@ class DecisionTree(Classifier):
 			self.root_node.split()
 
 		return
-		
+
 	def predict(self, features: List[List[float]]) -> List[int]:
 		y_pred = []
 		for feature in features:
@@ -30,7 +30,7 @@ class DecisionTree(Classifier):
 		if node is None:
 			node = self.root_node
 		print(name + '{')
-		
+
 		string = ''
 		for idx_cls in range(node.num_cls):
 			string += str(node.labels.count(idx_cls)) + ' '
@@ -71,18 +71,18 @@ class TreeNode(object):
 	def split(self):
 		def conditional_entropy(branches: List[List[int]]) -> float:
 			'''
-			branches: C x B array, 
+			branches: C x B array,
 					  C is the number of classes,
 					  B is the number of branches
-					  it stores the number of 
-					  corresponding training samples 
+					  it stores the number of
+					  corresponding training samples
 					  e.g.
 					              ○ ○ ○ ○
 					              ● ● ● ●
 					            ┏━━━━┻━━━━┓
 				               ○ ○       ○ ○
 				               ● ● ● ●
-				               
+
 				      branches = [[2,2], [4,0]]
 			'''
 			########################################################
@@ -102,7 +102,7 @@ class TreeNode(object):
 
 
 			return entropy
-		
+
 		for idx_dim in range(len(self.features[0])):
 		############################################################
 		# TODO: compare each split using conditional entropy
@@ -129,25 +129,30 @@ class TreeNode(object):
 					self.dim_split = idx_dim
 					self.feature_uniq_split = feature.tolist()
 
-			
+
 
 
 
 		############################################################
 		# TODO: split the node, add child nodes
 		############################################################
-		diff_feature = np.array(self.features)[:,self.dim_split]
-		fea_new = np.delete(np.array(self.features), self.dim_split, 1)
+		# diff_feature = np.array(self.features)[:,self.dim_split]
+		# fea_new = np.delete(np.array(self.features), self.dim_split, 1)
+		#
+		# diff_feature_unique = np.unique(diff_feature)
 
-		diff_feature_unique = np.unique(diff_feature)
-		for i in diff_feature_unique:
+		diff_feature = np.array(self.features)[:, self.dim_split]
+		fea_new = np.array(self.features, object)
+		fea_new[:, self.dim_split] = None
+
+		for i in self.feature_uniq_split:
 			indexes = np.where(diff_feature == i)
 			new_set = fea_new[indexes].tolist()
 			label = np.array(self.labels)[indexes]
 			label = label.tolist()
 			chidren = TreeNode(new_set, label, self.num_cls)
-			if(np.array(new_set).size == 0 or not any(fea_new) or not any(label) or not any(new_set)):
-			# if np.array(new_set).size == 0 or all(v is None for v in new_set[0]):
+			# if(np.array(new_set).size == 0 or not any(fea_new) or not any(label) or not any(new_set)):
+			if np.array(new_set).size == 0 or all(v is None for v in new_set[0]):
 				chidren.splittable = False
 			self.children.append(chidren)
 
