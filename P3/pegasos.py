@@ -55,7 +55,11 @@ def pegasos_train(Xtrain, ytrain, w, lamb, k, max_iterations):
         y = y_set[A_t]
         lr = 1 / (lamb * iter)
         w *= (1 - lr * lamb)
-        w += lr / k * np.expand_dims(np.sum(np.expand_dims(y,1) * X, 0), 1)
+        temp = (X.T.dot(y)).T
+        len = temp.shape[0]
+        temp2 = (temp).reshape(len,1)
+
+        w += lr / k * temp2
         w *= min(1, 1 / (np.sqrt(lamb) * np.sqrt(np.squeeze(w.T.dot(w)))))
         train_obj.append(objective_function(Xtrain, ytrain, w, lamb))
 
