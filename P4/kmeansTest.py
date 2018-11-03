@@ -30,11 +30,18 @@ def transform_image(image, code_vectors):
     # - comment/remove the exception
     # - implement the function
 
+    temp = code_vectors.shape
+
+    temp2 = np.expand_dims(np.expand_dims(code_vectors,1),1)
+    diff = np.argmin(np.sum((image - temp2)**2,axis=3),axis=0)
+    temp = code_vectors[diff]
+    # new_image = image[code_vectors[diff]]
+    new_img = temp
     # DONOT CHANGE CODE ABOVE THIS LINE
-    raise Exception(
-        'Implement transform_image function (filename:kmeansTest.py)')
+    # raise Exception(
+    #     'Implement transform_image function (filename:kmeansTest.py)')
     # DONOT CHANGE CODE BELOW THIS LINE
-    return new_im
+    return new_img
 
 ################################################################################
 # KMeans on 2D toy dataset
