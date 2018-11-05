@@ -127,6 +127,43 @@ class GMM():
         # return i
         gamma = np.zeros((N, self.n_cluster))
         l = float('-inf')
+
+        det_list = []
+        denum_list = []
+        inv_list = []
+        variances = self.variances
+        means = self.means
+        for j in range(self.n_cluster):
+            # sigma = np.copy(self.variances[j])
+            rank = np.linalg.matrix_rank(variances[j])
+            while rank < D:
+                variances[j] += np.eye(D) * 1e-3
+                rank = np.linalg.matrix_rank(variances[j])
+            det = abs(np.linalg.det(variances[j]))
+            inv_list.append(np.linalg.inv(variances[j]))
+            det_list.append(det)
+            denum = self.pi_k[j] / np.sqrt((2 * np.pi) ** D * det)
+            denum_list.append(denum)
+
+        temp = 0.0
+        gama = np.zeros((N, self.n_cluster))
+        for i in range(N):
+            res = 0.0
+            for j in range(self.n_cluster):
+                temp4 = 0.0
+                sigma_inv = inv_list[j]
+                diff = x[i] - means[j]
+                diff_t = np.transpose(diff)
+                sum = np.dot(np.dot(diff, sigma_inv), diff_t)
+                sum = sum / -2
+                temp4 = np.exp(sum) * denum_list[j]
+                res += temp4
+                gama[i][j] = temp4
+            temp += float(np.log(res))
+
+        gamma = gama
+        l = temp
+
         iter = 0
         while iter < self.max_iter:
             iter += 1
@@ -146,6 +183,19 @@ class GMM():
             #
             # l_new = np.sum(np.log(np.sum(gamma, axis=1)))
             #
+
+            # return temp
+
+            # Resume E step
+            gamma = (gamma.T / np.sum(gamma, axis=1)).T
+            n = np.sum(gamma, axis=0)
+
+            # M step
+            for k in range(self.n_cluster):
+                self.means[k] = np.sum(gamma[:, k] * x.T, axis=1).T / n[k]
+                self.variances[k] = np.dot(np.multiply((x - self.means[k]).T, gamma[:, k]), x - self.means[k]) / n[k]
+            self.pi_k = n / N
+
 
             det_list = []
             denum_list = []
@@ -182,17 +232,8 @@ class GMM():
 
             gamma = gama
             l_new = temp
-            # return temp
 
-            # Resume E step
-            gamma = (gamma.T / np.sum(gamma, axis=1)).T
-            n = np.sum(gamma, axis=0)
 
-            # M step
-            for k in range(self.n_cluster):
-                self.means[k] = np.sum(gamma[:, k] * x.T, axis=1).T / n[k]
-                self.variances[k] = np.dot(np.multiply((x - self.means[k]).T, gamma[:, k]), x - self.means[k]) / n[k]
-            self.pi_k = n / N
 
             if np.abs(l - l_new) <= self.e:
                 break
