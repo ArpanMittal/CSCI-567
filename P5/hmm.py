@@ -19,11 +19,15 @@ def forward(pi, A, B, O):
   S = len(pi)
   N = len(O)
   alpha = np.zeros([S, N])
-  ###################################################
-  # Q3.1 Edit here
-  ###################################################
+  alpha[:,0] = pi*B[:,O[0]]
+
+
+  for i in range(1,N):
+    temp = np.dot(A.T,alpha[:,i-1])
+    alpha[:,i] = B[:,O[i]] * temp
 
   return alpha
+
 
 
 def backward(pi, A, B, O):
@@ -42,10 +46,12 @@ def backward(pi, A, B, O):
   S = len(pi)
   N = len(O)
   beta = np.zeros([S, N])
-  ###################################################
-  # Q3.1 Edit here
-  ###################################################
-  
+  # ###################################################
+  beta[:,N-1] = 1
+  for i in reversed(range(N - 1)):
+    temp = B[:,O[i+1]]*beta[:,i+1]
+    beta[:,i] = np.dot(A,temp)
+
   return beta
 
 def seqprob_forward(alpha):
@@ -61,6 +67,9 @@ def seqprob_forward(alpha):
   prob = 0
   ###################################################
   # Q3.2 Edit here
+  for i in range(alpha.shape[0]):
+    prob = prob + alpha[i, alpha.shape[1] - 1]
+
   ###################################################
   
   return prob
@@ -83,6 +92,9 @@ def seqprob_backward(beta, pi, B, O):
   prob = 0
   ###################################################
   # Q3.2 Edit here
+  prob = sum([beta[i, 0] * pi[i] * B[i, O[0]] for i in range(len(pi))])
+
+
   ###################################################
   
   return prob
@@ -103,6 +115,25 @@ def viterbi(pi, A, B, O):
   path = []
   ###################################################
   # Q3.3 Edit here
+  S = len(pi)
+  N = len(O)
+  delta = np.zeros([S, N])
+  paths = np.zeros([S, N], dtype="int")
+
+  for j in range(S):
+    delta[j, 0] = pi[j] * B[j, O[0]]
+    paths[j, 0] = 0
+
+  for t in range(1, N):
+    for j in range(S):
+      deltas = [delta[i, t - 1] * A[i, j] * B[j, O[t]] for i in range(S)]
+      delta[j, t] = max(deltas)
+      paths[j, t] = np.argmax(deltas)
+
+  path.append(np.argmax(delta[:, -1]))
+  for t in reversed(range(N - 1)):
+    path.append(paths[path[-1], t])
+  path = reversed(path)
   ###################################################
   
   return path
